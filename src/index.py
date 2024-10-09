@@ -6,8 +6,7 @@ from dotenv import load_dotenv
 import requests
 import xml.etree.ElementTree as ET
 from pybadges import badge
-
-from util import evaluate_color
+from .util import evaluate_color
 
 load_dotenv()
 app = FastAPI()
