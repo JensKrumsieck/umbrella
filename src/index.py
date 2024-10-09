@@ -1,7 +1,7 @@
 from io import BytesIO
 import os
 import zipfile
-from fastapi import FastAPI, Response
+from fastapi import FastAPI, HTTPException, Response
 from dotenv import load_dotenv
 import requests
 import xml.etree.ElementTree as ET
@@ -30,12 +30,16 @@ def read_coverage(user: str, repo: str, workflow_yaml: str, branch="main"):
     # get workflow runs
     runs_url = f"https://api.github.com/repos/{user}/{repo}/actions/workflows/{workflow_yaml}/runs?status=success&branch={branch}&per_page=1&event=push"
     response = requests.get(runs_url)
+    if not response.ok:
+        raise HTTPException(status_code=response.status_code, detail=f"GitHub API returned error. Request URL: {runs_url}")
     run_json = response.json()
     run_id = run_json["workflow_runs"][0]["id"]
 
     # list artifacts
     artifacts_url = f"https://api.github.com/repos/{user}/{repo}/actions/runs/{run_id}/artifacts?per_page=100"
     response = requests.get(artifacts_url)
+    if not response.ok:
+        raise HTTPException(status_code=response.status_code, detail=f"GitHub API returned error. Request URL: {artifacts_url}")
     artifacts_json = response.json()
 
     # pick first artifact and download
