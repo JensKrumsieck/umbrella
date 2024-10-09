@@ -36,6 +36,10 @@ def read_coverage(user: str, repo: str, branch="main"):
         raise HTTPException(status_code=response.status_code,
                             detail=f"GitHub API returned error. Request URL: {runs_url}")
     run_json = response.json()
+    if len(run_json["workflow_runs"]) == 0:
+        raise HTTPException(
+            status_code=404, detail=f"Could not find any Workflow runs for {runs_url}")
+
     run_id = run_json["workflow_runs"][0]["id"]
 
     # list artifacts
@@ -47,6 +51,10 @@ def read_coverage(user: str, repo: str, branch="main"):
     artifacts_json = response.json()
 
     # pick first artifact and download
+    if len(artifacts_json["artifacts"][0]) == 0:
+        raise HTTPException(
+            status_code=404, detail=f"Could not find any artifacts")
+
     zip_url = artifacts_json["artifacts"][0]["archive_download_url"]
     headers = {'Authorization': 'token ' + os.environ.get("API_TOKEN")}
     response = requests.get(zip_url, headers=headers, stream=True)
