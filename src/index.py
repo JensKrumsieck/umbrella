@@ -25,10 +25,10 @@ def index():
         """
     return Response(html_content, media_type="text/html")
 
-@app.get("/coverage/{user}/{repo}/{workflow_yaml}")
-def read_coverage(user: str, repo: str, workflow_yaml: str, branch="main"):
+@app.get("/coverage/{user}/{repo}")
+def read_coverage(user: str, repo: str, branch="main"):
     # get workflow runs
-    runs_url = f"https://api.github.com/repos/{user}/{repo}/actions/workflows/{workflow_yaml}/runs?status=success&branch={branch}&per_page=1&event=push"
+    runs_url = f"https://api.github.com/repos/{user}/{repo}/actions/workflows/coverage.yml/runs?status=success&branch={branch}&per_page=1&event=push"
     response = requests.get(runs_url)
     if not response.ok:
         raise HTTPException(status_code=response.status_code, detail=f"GitHub API returned error. Request URL: {runs_url}")
