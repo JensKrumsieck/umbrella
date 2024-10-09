@@ -7,6 +7,8 @@ import requests
 import xml.etree.ElementTree as ET
 from pybadges import badge
 
+from util import evaluate_color
+
 load_dotenv()
 app = FastAPI()
 
@@ -29,9 +31,10 @@ def index():
 
 @app.get("/coverage/{user}/{repo}")
 def read_coverage(user: str, repo: str, branch="main"):
+    headers = {'Authorization': 'token ' + os.environ.get("API_TOKEN")}
     # get workflow runs
     runs_url = f"https://api.github.com/repos/{user}/{repo}/actions/workflows/coverage.yml/runs?status=success&branch={branch}&per_page=1&event=push"
-    response = requests.get(runs_url)
+    response = requests.get(runs_url, headers=headers)
     if not response.ok:
         raise HTTPException(status_code=response.status_code,
                             detail=f"GitHub API returned error. Request URL: {runs_url}")
@@ -44,7 +47,7 @@ def read_coverage(user: str, repo: str, branch="main"):
 
     # list artifacts
     artifacts_url = f"https://api.github.com/repos/{user}/{repo}/actions/runs/{run_id}/artifacts?per_page=100"
-    response = requests.get(artifacts_url)
+    response = requests.get(artifacts_url, headers=headers)
     if not response.ok:
         raise HTTPException(status_code=response.status_code,
                             detail=f"GitHub API returned error. Request URL: {artifacts_url}")
@@ -56,7 +59,6 @@ def read_coverage(user: str, repo: str, branch="main"):
             status_code=404, detail=f"Could not find any artifacts")
 
     zip_url = artifacts_json["artifacts"][0]["archive_download_url"]
-    headers = {'Authorization': 'token ' + os.environ.get("API_TOKEN")}
     response = requests.get(zip_url, headers=headers, stream=True)
     if not response.ok:
         raise HTTPException(status_code=response.status_code,
@@ -82,16 +84,7 @@ def read_coverage(user: str, repo: str, branch="main"):
             raise HTTPException(
                 status_code=500, detail="could not find the required xml file...")
 
-    color = 'green'
-
-    if line_rate_float < 75:
-        color = 'yellow'
-
-    if line_rate_float < 50:
-        color = 'red'
-
-    if line_rate_float < 25:
-        color = '#8b0000'
+    color = evaluate_color(line_rate_float)
 
     # create badge
     cov = badge(left_text="coverage",
