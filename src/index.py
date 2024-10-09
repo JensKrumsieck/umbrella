@@ -77,7 +77,7 @@ def read_coverage(user: str, repo: str, branch="main"):
                 tree = ET.parse(xml_file)
                 root = tree.getroot()
                 line_rate = root.attrib.get('line-rate')
-                line_rate_float = float(line_rate)
+                line_rate_float = float(line_rate) * 100
         else:
             raise HTTPException(
                 status_code=500, detail="could not find the required xml file...")
