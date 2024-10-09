@@ -10,6 +10,20 @@ from pybadges import badge
 load_dotenv()
 app = FastAPI()
 
+@app.get("/")
+def index():
+    html_content = """
+        <html>
+            <head>
+                <title>FastAPI HTML Response</title>
+            </head>
+            <body>
+                <h1>Coverage Service</h1>
+                <p>You probably want to see docs: <a href=\"/docs\">Docs</a></p>
+            </body>
+        </html>
+        """
+    return Response(html_content, media_type="text/html")
 
 @app.get("/coverage/{user}/{repo}/{workflow_yaml}")
 def read_coverage(user: str, repo: str, workflow_yaml: str, branch="main"):
@@ -61,3 +75,8 @@ def read_coverage(user: str, repo: str, workflow_yaml: str, branch="main"):
     cov = badge(left_text="coverage",
                 right_text=f"{round(line_rate_float, 2)} %", right_color=color)
     return Response(cov, media_type="image/svg+xml")
+
+
+if __name__ == '__main__':
+    import uvicorn
+    uvicorn.run(app)
