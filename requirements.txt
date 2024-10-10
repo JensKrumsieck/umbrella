@@ -1,5 +1,4 @@
 fastapi[standard]
-fastapi-cache2
 requests
 pybadges
 uvicorn
