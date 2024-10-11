@@ -2,7 +2,7 @@
 
 A small and simple service for coverage badges working with public repos the service host has access to via GitHub Token Authentification.
 
-It looks for an artifact created by a workflow called `coverage.yml`. The artifact must contain a xml file called `cobertura.xml` which may be created using `cargo tarpaulin`. [And example can be viewed here.](https://github.com/fairagro/m4.4_sciwin_client/blob/main/.github/workflows/coverage.yml)
+It looks for an artifact created by a workflow called `coverage.yml`. The artifact must contain an xml file called `cobertura.xml` which may be created using `cargo tarpaulin`. [An example can be viewed here.](https://github.com/fairagro/m4.4_sciwin_client/blob/main/.github/workflows/coverage.yml)
 
 The Endpoint returns an image in typical badge format. ![](https://coverage.jenskrumsieck.de/coverage/fairagro/m4.4_sciwin_client)
 
