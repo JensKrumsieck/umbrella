@@ -2,7 +2,9 @@ import os
 from fastapi import FastAPI, Request, Response
 from dotenv import load_dotenv
 from fastapi.responses import HTMLResponse
-from .coverage import cobertura_get_line_rate, create_badge, get_artifact_url, download_zip_file, get_run_id
+import xml.etree.ElementTree as ET
+from .cache import cache_service
+from .coverage import cobertura_get_line_rate, create_badge, get_cobertura_xml, get_run_id
 
 load_dotenv()
 app = FastAPI()
@@ -14,11 +16,21 @@ async def read_coverage(user: str, repo: str, branch="main",):
 
     run_id = get_run_id(user, repo, branch, "coverage.yml", headers)
 
-    zip_url = get_artifact_url(user, repo, run_id, headers)
+    cache_key = f"coverage:{user}:{repo}:{run_id}"
+    r = cache_service()
+    try:
+        cached_xml = r.get(cache_key)
+    except:
+        print("Vercel KV: Limit reached!")
+        
+    if cached_xml:
+        tree = ET.ElementTree(ET.fromstring(cached_xml))
+    else:
+        tree = get_cobertura_xml(user, repo, run_id, headers)
+        tree_str = ET.tostring(tree.getroot(), encoding='utf-8').decode('utf-8')
+        r.setex(cache_key, 30 * 24 * 60 * 60, tree_str) # cache 1 month
 
-    zip_file = download_zip_file(zip_url, headers)
-
-    line_rate_float = cobertura_get_line_rate(zip_file)
+    line_rate_float = cobertura_get_line_rate(tree)
 
     badge = create_badge(line_rate_float)
 
@@ -27,6 +39,7 @@ async def read_coverage(user: str, repo: str, branch="main",):
         "Cache-Control": "public, max-age=600, s-maxage=600, stale-while-revalidate=30",
     }
     return Response(badge, media_type="image/svg+xml", headers=response_headers)
+
 
 @app.get("/{full_path:path}")
 async def catch_all(request: Request):

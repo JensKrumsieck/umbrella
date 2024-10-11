@@ -4,3 +4,4 @@ pybadges
 uvicorn
 setuptools
 colour
+redis

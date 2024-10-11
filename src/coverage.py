@@ -50,30 +50,40 @@ def download_zip_file(zip_url: str, headers: any) -> BytesIO:
     return BytesIO(response.content)
 
 
-def cobertura_get_line_rate(zip_file: BytesIO) -> float:
-    line_rate_float = 0
+def get_xml_from_zip(zip_file: BytesIO) -> ET.ElementTree:
     with zipfile.ZipFile(zip_file, 'r') as zip_ref:
         xml_file_name = None
         for file_info in zip_ref.infolist():
             if file_info.filename.endswith('.xml'):
                 xml_file_name = file_info.filename
                 break
-
         if xml_file_name:
             with zip_ref.open(xml_file_name) as xml_file:
                 tree = ET.parse(xml_file)
-                root = tree.getroot()
-                line_rate = root.attrib.get('line-rate')
-                line_rate_float = float(line_rate) * 100
         else:
             raise HTTPException(
                 status_code=500, detail="Required XML coverage report not found in the artifact ZIP.")
+    return tree
+
+
+def cobertura_get_line_rate(tree: ET.ElementTree) -> float:
+    line_rate_float = 0
+    root = tree.getroot()
+    line_rate = root.attrib.get('line-rate')
+    line_rate_float = float(line_rate) * 100
+
     return line_rate_float
 
 
 def create_badge(value: float):
     color = evaluate_color(value)
 
-    # create badge
     return badge(left_text="coverage",
-                right_text=f"{round(value, 2)} %", right_color=color)
+                 right_text=f"{round(value, 2)} %", right_color=color)
+
+
+def get_cobertura_xml(user: str, repo: str, run_id: str, headers: any) -> ET.ElementTree:
+    zip_url = get_artifact_url(user, repo, run_id, headers)
+    zip_file = download_zip_file(zip_url, headers)
+    tree = get_xml_from_zip(zip_file)
+    return tree
