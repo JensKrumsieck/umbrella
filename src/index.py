@@ -28,7 +28,12 @@ async def read_runs(user: str, repo: str, branch="main"):
     cache_keys = [f"coverage:{user}:{repo}:{run[0]}" for run in run_info]
 
     # get all cached data and fill with live
-    result = cache_get_all(cache_keys)
+    result = [None]* len(cache_keys)
+    try:
+        result = cache_get_all(cache_keys)
+    except:
+        result = [None] * len(cache_keys)
+    
     for i, res in enumerate(result):
         if not res:
             result[i] = get_and_cache_xml(user, repo, run_info[i][0],
