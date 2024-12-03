@@ -16,6 +16,7 @@ def cache_get(key: str):
         return r.get(key)
     except:
         print("Cache Miss! (get)")
+        return None
 
 def cache_get_all(keys: list[str]):
     r = cache_service()

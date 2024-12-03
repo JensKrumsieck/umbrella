@@ -32,7 +32,9 @@ async def read_runs(user: str, repo: str, branch="main"):
     
     for i, res in enumerate(result):
         if not res:
-            result[i] = get_and_cache_xml(user, repo, run_info[i][0],
+            result[i] = cache_get(cache_keys[i])
+            if not result[i]:
+                result[i] = get_and_cache_xml(user, repo, run_info[i][0],
                                           headers, cache_keys[i])
 
     data = [CoverageDataPoint.create(run_info[i], xml)
