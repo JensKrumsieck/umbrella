@@ -30,7 +30,10 @@ class CoverageDataPoint:
         commit_id = run_info[1]["id"]
         committer = run_info[1]["committer"]["name"]
         commit_message = run_info[1]["message"]
-        xml_tree = ET.ElementTree(ET.fromstring(xml))
+        if isinstance(xml, ET.ElementTree):
+            xml_tree = xml
+        else:
+            xml_tree = ET.ElementTree(ET.fromstring(xml))
         value = cobertura_get_line_rate(xml_tree)
         files = cobertura_get_files_rate(xml_tree)
         return CoverageDataPoint(date, commit_id, commit_message, committer, run_info[0], value, files)

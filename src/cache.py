@@ -15,14 +15,15 @@ def cache_get(key: str):
     try:
         return r.get(key)
     except:
-        print("Vercel KV: Limit reached!")
+        print("Cache Miss! (get)")
 
 def cache_get_all(keys: list[str]):
     r = cache_service()
     try:
         return r.mget(keys)
     except:
-        print("Vercel KV: Limit reached!")
+        print("Cache Miss! (get_all)")
+        return [None]*len(keys)
 
 
 def cache_set(key: str, value, lifetime: int):

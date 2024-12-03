@@ -28,11 +28,7 @@ async def read_runs(user: str, repo: str, branch="main"):
     cache_keys = [f"coverage:{user}:{repo}:{run[0]}" for run in run_info]
 
     # get all cached data and fill with live
-    result = [None]* len(cache_keys)
-    try:
-        result = cache_get_all(cache_keys)
-    except:
-        result = [None] * len(cache_keys)
+    result = cache_get_all(cache_keys)
     
     for i, res in enumerate(result):
         if not res:
@@ -41,6 +37,7 @@ async def read_runs(user: str, repo: str, branch="main"):
 
     data = [CoverageDataPoint.create(run_info[i], xml)
             for i, xml in enumerate(result)]
+    
     return data
 
 
